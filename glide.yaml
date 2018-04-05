@@ -1,0 +1,10 @@
+package: github.com/elastos/Elastos.ELA.Utility
+import:
+- package: github.com/itchyny/base58-go
+- package: github.com/golang/crypto
+  subpackages:
+  - ripemd160
+  - ssh/terminal
+ignore:
+  - golang.org/x/sys/unix
+  - golang.org/x/sys/windows

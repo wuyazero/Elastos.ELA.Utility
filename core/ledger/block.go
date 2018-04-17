@@ -108,9 +108,9 @@ func (b *Block) FromTrimmedData(r io.Reader) error {
 	return nil
 }
 
-func (tx *Block) GetSize() int {
+func (b *Block) GetSize() int {
 	var buffer bytes.Buffer
-	if err := tx.Serialize(&buffer); err != nil {
+	if err := b.Serialize(&buffer); err != nil {
 		return InvalidBlockSize
 	}
 
@@ -133,4 +133,23 @@ func (b *Block) RebuildMerkleRoot() error {
 	}
 	b.Header.MerkleRoot = hash
 	return nil
+}
+
+func (b *Block) GetArbitrators(arbiters []string) ([][]byte, error) {
+	//todo finish this when arbitrator election scenario is done
+	var arbitersByte [][]byte
+	for _, arbiter := range arbiters {
+		arbiterByte, err := HexStringToBytes(arbiter)
+		if err != nil {
+			return nil, err
+		}
+		arbitersByte = append(arbitersByte, arbiterByte)
+	}
+
+	return arbitersByte, nil
+}
+
+func (b *Block) GetCurrentArbitratorIndex() (int, error) {
+	//todo finish this when arbitrator election scenario is done
+	return int(b.Header.Height) % 2, nil
 }

@@ -31,29 +31,6 @@ const (
 	MinMultiSignCodeLength = 71
 )
 
-func MakeMerkleParent(left *Uint256, right *Uint256) (*Uint256, error) {
-	// dupes can screw things up; CVE-2012-2459. check for them
-	if left != nil && right != nil && left.IsEqual(*right) {
-		return nil, errors.New("DUP HASH CRASH")
-	}
-	// if left child is nil, output nil.  Need this for hard mode.
-	if left == nil {
-		return nil, errors.New("Left child is nil")
-	}
-	// if right is nil, hash left with itself
-	if right == nil {
-		right = left
-	}
-
-	// Concatenate the left and right nodes
-	var sha [64]byte
-	copy(sha[:32], left[:])
-	copy(sha[32:], right[:])
-
-	parent := Uint256(Sha256D(sha[:]))
-	return &parent, nil
-}
-
 func ToProgramHash(code []byte) (*Uint168, error) {
 	temp := sha256.Sum256(code)
 	md := ripemd160.New()

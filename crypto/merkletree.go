@@ -57,7 +57,7 @@ func generateLeaves(hashes []Uint256) []*MerkleTreeNode {
 func levelUp(nodes []*MerkleTreeNode) []*MerkleTreeNode {
 	var nextLevel []*MerkleTreeNode
 	for i := 0; i < len(nodes)/2; i++ {
-		hash, _ := MakeMerkleParent(&nodes[i*2].Hash, &nodes[i*2+1].Hash)
+		hash, _ := ComputeParent(nodes[i*2].Hash, nodes[i*2+1].Hash)
 		node := &MerkleTreeNode{
 			Hash:  *hash,
 			Left:  nodes[i*2],
@@ -66,7 +66,7 @@ func levelUp(nodes []*MerkleTreeNode) []*MerkleTreeNode {
 		nextLevel = append(nextLevel, node)
 	}
 	if len(nodes)%2 == 1 {
-		hash, _ := MakeMerkleParent(&nodes[len(nodes)-1].Hash, nil)
+		hash, _ := ComputeParent(nodes[len(nodes)-1].Hash, nodes[len(nodes)-1].Hash)
 		node := &MerkleTreeNode{
 			Hash:  *hash,
 			Left:  nodes[len(nodes)-1],
@@ -87,4 +87,14 @@ func ComputeRoot(hashes []Uint256) (Uint256, error) {
 	}
 	tree, _ := NewMerkleTree(hashes)
 	return tree.Root.Hash, nil
+}
+
+func ComputeParent(left Uint256, right Uint256) (*Uint256, error) {
+	// Concatenate the left and right nodes
+	var sha [64]byte
+	copy(sha[:32], left[:])
+	copy(sha[32:], right[:])
+
+	parent := Uint256(Sha256D(sha[:]))
+	return &parent, nil
 }

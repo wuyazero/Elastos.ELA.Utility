@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	. "github.com/elastos/Elastos.ELA.Utility/common"
-	"github.com/elastos/Elastos.ELA.Utility/crypto"
 )
 
 type MerkleBranch struct {
@@ -100,7 +99,7 @@ func (m merkleNodes) getNodes() (map[uint32]merkleNode, error) {
 		// is current position in the tree's dead zone? partial parent
 		if inDeadZone(pos, m.numTxs) {
 			// create merkle parent from single side (left)
-			h, err := crypto.MakeMerkleParent(s[tip].h, nil)
+			h, err := MakeMerkleParent(s[tip].h, nil)
 			if err != nil {
 				return r, err
 			}
@@ -113,7 +112,7 @@ func (m merkleNodes) getNodes() (map[uint32]merkleNode, error) {
 		// does stack have 3+ items? and are last 2 items filled?
 		if tip > 1 && s[tip-1].h != nil && s[tip].h != nil {
 			// combine two filled nodes into parent node
-			h, err := crypto.MakeMerkleParent(s[tip-1].h, s[tip].h)
+			h, err := MakeMerkleParent(s[tip-1].h, s[tip].h)
 			if err != nil {
 				return r, err
 			}

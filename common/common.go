@@ -29,6 +29,20 @@ func HexStringToBytesReverse(value string) ([]byte, error) {
 	return BytesReverse(u), err
 }
 
+func IsEqualBytes(this []byte, that []byte) bool {
+	if len(this) != len(that) {
+		return false
+	}
+
+	for i := 0; i < len(this); i++ {
+		if this[i] != that[i] {
+			return false
+		}
+	}
+
+	return true
+}
+
 func ClearBytes(arr []byte) {
 	for i := 0; i < len(arr); i++ {
 		arr[i] = 0

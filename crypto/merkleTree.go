@@ -1,8 +1,6 @@
 package crypto
 
 import (
-	"bytes"
-	"crypto/sha256"
 	"errors"
 
 	. "github.com/elastos/Elastos.ELA.Utility/common"
@@ -17,16 +15,6 @@ type MerkleTreeNode struct {
 	Hash  Uint256
 	Left  *MerkleTreeNode
 	Right *MerkleTreeNode
-}
-
-func DoubleSHA256(s []Uint256) Uint256 {
-	b := new(bytes.Buffer)
-	for _, d := range s {
-		d.Serialize(b)
-	}
-	temp := sha256.Sum256(b.Bytes())
-	f := sha256.Sum256(temp[:])
-	return Uint256(f)
 }
 
 func (t *MerkleTreeNode) IsLeaf() bool {
@@ -69,24 +57,18 @@ func generateLeaves(hashes []Uint256) []*MerkleTreeNode {
 func levelUp(nodes []*MerkleTreeNode) []*MerkleTreeNode {
 	var nextLevel []*MerkleTreeNode
 	for i := 0; i < len(nodes)/2; i++ {
-		var data []Uint256
-		data = append(data, nodes[i*2].Hash)
-		data = append(data, nodes[i*2+1].Hash)
-		hash := DoubleSHA256(data)
+		hash, _ := MakeMerkleParent(&nodes[i*2].Hash, &nodes[i*2+1].Hash)
 		node := &MerkleTreeNode{
-			Hash:  hash,
+			Hash:  *hash,
 			Left:  nodes[i*2],
 			Right: nodes[i*2+1],
 		}
 		nextLevel = append(nextLevel, node)
 	}
 	if len(nodes)%2 == 1 {
-		var data []Uint256
-		data = append(data, nodes[len(nodes)-1].Hash)
-		data = append(data, nodes[len(nodes)-1].Hash)
-		hash := DoubleSHA256(data)
+		hash, _ := MakeMerkleParent(&nodes[len(nodes)-1].Hash, nil)
 		node := &MerkleTreeNode{
-			Hash:  hash,
+			Hash:  *hash,
 			Left:  nodes[len(nodes)-1],
 			Right: nodes[len(nodes)-1],
 		}

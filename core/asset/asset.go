@@ -1,10 +1,9 @@
 package asset
 
 import (
+	"github.com/elastos/Elastos.ELA.Utility/common/serialize"
 	"errors"
 	"io"
-
-	"github.com/elastos/Elastos.ELA.Utility/common/serialization"
 )
 
 //AssetType
@@ -38,11 +37,11 @@ type Asset struct {
 
 // Serialize is the implement of SignableData interface.
 func (a *Asset) Serialize(w io.Writer) error {
-	err := serialization.WriteVarString(w, a.Name)
+	err := serialize.WriteVarString(w, a.Name)
 	if err != nil {
 		return errors.New("[Asset], Name serialize failed.")
 	}
-	err = serialization.WriteVarString(w, a.Description)
+	err = serialize.WriteVarString(w, a.Description)
 	if err != nil {
 		return errors.New("[Asset], Description serialize failed.")
 	}
@@ -63,12 +62,12 @@ func (a *Asset) Serialize(w io.Writer) error {
 
 // Deserialize is the implement of SignableData interface.
 func (a *Asset) Deserialize(r io.Reader) error {
-	name, err := serialization.ReadVarString(r)
+	name, err := serialize.ReadVarString(r)
 	if err != nil {
 		return errors.New("[Asset], Name deserialize failed.")
 	}
 	a.Name = name
-	description, err := serialization.ReadVarString(r)
+	description, err := serialize.ReadVarString(r)
 	if err != nil {
 		return errors.New("[Asset], Description deserialize failed.")
 	}

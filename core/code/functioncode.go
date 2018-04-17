@@ -3,8 +3,8 @@ package code
 import (
 	"io"
 
-	"github.com/elastos/Elastos.ELA.Utility/common/serialization"
 	. "github.com/elastos/Elastos.ELA.Utility/core/contract"
+	"github.com/elastos/Elastos.ELA.Utility/common/serialize"
 )
 
 type FunctionCode struct {
@@ -20,12 +20,12 @@ type FunctionCode struct {
 
 // method of SerializableData
 func (fc *FunctionCode) Serialize(w io.Writer) error {
-	err := serialization.WriteVarBytes(w, ContractParameterTypeToByte(fc.ParameterTypes))
+	err := serialize.WriteVarBytes(w, ContractParameterTypeToByte(fc.ParameterTypes))
 	if err != nil {
 		return err
 	}
 
-	err = serialization.WriteVarBytes(w, fc.Code)
+	err = serialize.WriteVarBytes(w, fc.Code)
 	if err != nil {
 		return err
 	}
@@ -35,13 +35,13 @@ func (fc *FunctionCode) Serialize(w io.Writer) error {
 
 // method of SerializableData
 func (fc *FunctionCode) Deserialize(r io.Reader) error {
-	p, err := serialization.ReadVarBytes(r)
+	p, err := serialize.ReadVarBytes(r)
 	if err != nil {
 		return err
 	}
 	fc.ParameterTypes = ByteToContractParameterType(p)
 
-	fc.Code, err = serialization.ReadVarBytes(r)
+	fc.Code, err = serialize.ReadVarBytes(r)
 	if err != nil {
 		return err
 	}

@@ -4,6 +4,7 @@ import (
 	"io"
 	"bytes"
 	"errors"
+
 	"github.com/elastos/Elastos.ELA.Utility/crypto"
 	. "github.com/elastos/Elastos.ELA.Utility/common"
 	tx "github.com/elastos/Elastos.ELA.Utility/core/transaction"
@@ -95,15 +96,14 @@ func (b *Block) FromTrimmedData(r io.Reader) error {
 	var tharray []Uint256
 	for i = 0; i < Len; i++ {
 		txhash.Deserialize(r)
-		b.Transactions = append(b.Transactions, tx.NewTrimmed(&txhash))
+		b.Transactions = append(b.Transactions, tx.NewTrimmed(txhash))
 		tharray = append(tharray, txhash)
 	}
 
-	merkleRoot, err := crypto.ComputeRoot(tharray)
+	b.Header.MerkleRoot, err = crypto.ComputeRoot(tharray)
 	if err != nil {
 		return errors.New("Block Deserialize merkleTree compute failed")
 	}
-	b.Header.MerkleRoot = merkleRoot
 
 	return nil
 }

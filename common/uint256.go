@@ -26,6 +26,10 @@ func (u *Uint256) IsEqual(o Uint256) bool {
 	return *u == o
 }
 
+func (u Uint256) String() string {
+	return BytesToHexString(u.Bytes())
+}
+
 func (u Uint256) Bytes() []byte {
 	var x = make([]byte, UINT256SIZE)
 	copy(x, u[:])
@@ -38,10 +42,6 @@ func (u *Uint256) Serialize(w io.Writer) error {
 
 func (u *Uint256) Deserialize(r io.Reader) error {
 	return binary.Read(r, binary.LittleEndian, u)
-}
-
-func (u *Uint256) String() string {
-	return BytesToHexString(u.Bytes())
 }
 
 func Uint256FromBytes(f []byte) (*Uint256, error) {

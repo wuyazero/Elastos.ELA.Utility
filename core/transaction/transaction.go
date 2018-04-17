@@ -488,8 +488,8 @@ func (a byProgramHashes) Less(i, j int) bool {
 	}
 }
 
-func NewTrimmed(hash *Uint256) *Transaction {
+func NewTrimmed(hash Uint256) *Transaction {
 	tx := new(Transaction)
-	tx.hash = hash
+	tx.hash, _ = Uint256FromBytes(hash[:])
 	return tx
 }

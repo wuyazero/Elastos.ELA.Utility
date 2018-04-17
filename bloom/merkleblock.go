@@ -2,12 +2,12 @@ package bloom
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 
 	. "github.com/elastos/Elastos.ELA.Utility/common"
 	"github.com/elastos/Elastos.ELA.Utility/common/serialize"
 	"github.com/elastos/Elastos.ELA.Utility/core/ledger"
-	"github.com/elastos/Elastos.ELA.Utility/crypto"
 )
 
 type MerkleBlock struct {
@@ -178,7 +178,7 @@ func CheckMerkleBlock(m MerkleBlock) ([]*Uint256, error) {
 		// is current position in the tree's dead zone? partial parent
 		if inDeadZone(pos, m.Transactions) {
 			// create merkle parent from single side (left)
-			h, err := crypto.MakeMerkleParent(s[tip].h, nil)
+			h, err := MakeMerkleParent(s[tip].h, nil)
 			if err != nil {
 				return r, err
 			}
@@ -192,7 +192,7 @@ func CheckMerkleBlock(m MerkleBlock) ([]*Uint256, error) {
 			//fmt.Printf("nodes %d and %d combine into %d\n",
 			//	s[tip-1].p, s[tip].p, s[tip-2].p)
 			// combine two filled nodes into parent node
-			h, err := crypto.MakeMerkleParent(s[tip-1].h, s[tip].h)
+			h, err := MakeMerkleParent(s[tip-1].h, s[tip].h)
 			if err != nil {
 				return r, err
 			}
@@ -251,4 +251,27 @@ func CheckMerkleBlock(m MerkleBlock) ([]*Uint256, error) {
 		}
 	}
 	return nil, fmt.Errorf("ran out of things to do?")
+}
+
+func MakeMerkleParent(left *Uint256, right *Uint256) (*Uint256, error) {
+	// dupes can screw things up; CVE-2012-2459. check for them
+	if left != nil && right != nil && left.IsEqual(*right) {
+		return nil, errors.New("DUP HASH CRASH")
+	}
+	// if left child is nil, output nil.  Need this for hard mode.
+	if left == nil {
+		return nil, errors.New("Left child is nil")
+	}
+	// if right is nil, hash left with itself
+	if right == nil {
+		right = left
+	}
+
+	// Concatenate the left and right nodes
+	var sha [64]byte
+	copy(sha[:32], left[:])
+	copy(sha[32:], right[:])
+
+	parent := Uint256(Sha256D(sha[:]))
+	return &parent, nil
 }

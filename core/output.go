@@ -1,18 +1,17 @@
-package transaction
+package core
 
 import (
 	"io"
 	"fmt"
 
-	"github.com/elastos/Elastos.ELA.Utility/common"
-	"github.com/elastos/Elastos.ELA.Utility/common/serialize"
+	. "github.com/elastos/Elastos.ELA.Utility/common"
 )
 
 type Output struct {
-	AssetID     common.Uint256
-	Value       common.Fixed64
+	AssetID     Uint256
+	Value       Fixed64
 	OutputLock  uint32
-	ProgramHash common.Uint168
+	ProgramHash Uint168
 }
 
 func (o Output) String() string {
@@ -35,7 +34,7 @@ func (o *Output) Serialize(w io.Writer) error {
 		return err
 	}
 
-	serialize.WriteUint32(w, o.OutputLock)
+	WriteUint32(w, o.OutputLock)
 
 	err = o.ProgramHash.Serialize(w)
 	if err != nil {
@@ -56,7 +55,7 @@ func (o *Output) Deserialize(r io.Reader) error {
 		return err
 	}
 
-	temp, err := serialize.ReadUint32(r)
+	temp, err := ReadUint32(r)
 	if err != nil {
 		return err
 	}

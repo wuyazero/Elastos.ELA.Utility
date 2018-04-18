@@ -5,13 +5,12 @@ import (
 	"errors"
 	"fmt"
 
+	. "github.com/elastos/Elastos.ELA.Utility/core"
 	. "github.com/elastos/Elastos.ELA.Utility/common"
-	"github.com/elastos/Elastos.ELA.Utility/common/serialize"
-	"github.com/elastos/Elastos.ELA.Utility/core/ledger"
 )
 
 type MerkleBlock struct {
-	Header       ledger.Header
+	Header       Header
 	Transactions uint32
 	Hashes       []*Uint256
 	Flags        []byte
@@ -28,7 +27,7 @@ func (msg *MerkleBlock) Serialize() ([]byte, error) {
 		return nil, err
 	}
 
-	err = serialize.WriteElements(buf,
+	err = WriteElements(buf,
 		msg.Transactions,
 		uint32(len(msg.Hashes)),
 		msg.Hashes, msg.Flags)
@@ -46,22 +45,22 @@ func (msg *MerkleBlock) Deserialize(body []byte) error {
 		return err
 	}
 
-	msg.Transactions, err = serialize.ReadUint32(buf)
+	msg.Transactions, err = ReadUint32(buf)
 	if err != nil {
 		return err
 	}
 
-	hashes, err := serialize.ReadUint32(buf)
+	hashes, err := ReadUint32(buf)
 	if err != nil {
 		return err
 	}
 
 	msg.Hashes = make([]*Uint256, hashes)
-	return serialize.ReadElements(buf, &msg.Hashes, &msg.Flags)
+	return ReadElements(buf, &msg.Hashes, &msg.Flags)
 }
 
 // NewMerkleBlock returns a new *MerkleBlock
-func NewMerkleBlock(block *ledger.Block, filter *Filter) *MerkleBlock {
+func NewMerkleBlock(block *Block, filter *Filter) *MerkleBlock {
 	NumTx := uint32(len(block.Transactions))
 	mBlock := MBlock{
 		NumTx:       NumTx,

@@ -1,12 +1,10 @@
-package ledger
+package core
 
 import (
 	"bytes"
 	"io"
 
 	. "github.com/elastos/Elastos.ELA.Utility/common"
-	. "github.com/elastos/Elastos.ELA.Utility/common/serialize"
-	. "github.com/elastos/Elastos.ELA.Utility/core/auxpow"
 )
 
 type Header struct {

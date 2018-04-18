@@ -1,12 +1,10 @@
-package serialize
+package common
 
 import (
 	"encoding/binary"
 	"errors"
 	"io"
 	"math"
-
-	. "github.com/elastos/Elastos.ELA.Utility/common"
 )
 
 var ErrRange = errors.New("value out of range")
@@ -255,6 +253,8 @@ func WriteElements(writer io.Writer, elements ...interface{}) error {
 
 func WriteElement(writer io.Writer, element interface{}) (err error) {
 	switch e := element.(type) {
+	case Fixed64:
+		err = e.Serialize(writer)
 	case Uint256:
 		err = e.Serialize(writer)
 	case []Uint256:
@@ -291,6 +291,8 @@ func ReadElements(reader io.Reader, elements ...interface{}) error {
 
 func ReadElement(reader io.Reader, element interface{}) (err error) {
 	switch e := element.(type) {
+	case *Fixed64:
+		err = (*e).Deserialize(reader)
 	case *Uint256:
 		err = (*e).Deserialize(reader)
 	case *[]Uint256:

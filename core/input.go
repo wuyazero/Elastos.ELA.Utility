@@ -1,11 +1,11 @@
-package transaction
+package core
 
 import (
-	"github.com/elastos/Elastos.ELA.Utility/common/serialize"
 	"io"
 	"bytes"
-	"github.com/elastos/Elastos.ELA.Utility/common"
 	"encoding/hex"
+
+	. "github.com/elastos/Elastos.ELA.Utility/common"
 )
 
 type Input struct {
@@ -17,17 +17,17 @@ type Input struct {
 }
 
 func (i *Input) Serialize(w io.Writer) error {
-	return serialize.WriteElements(w, i.Previous.TxID, i.Previous.Index, i.Sequence)
+	return WriteElements(w, i.Previous.TxID, i.Previous.Index, i.Sequence)
 }
 
 func (i *Input) Deserialize(r io.Reader) error {
-	return serialize.ReadElements(r, &i.Previous.TxID, &i.Previous.Index, &i.Sequence)
+	return ReadElements(r, &i.Previous.TxID, &i.Previous.Index, &i.Sequence)
 }
 
 func (i *Input) ReferKey() string {
 	buf := new(bytes.Buffer)
 	i.Previous.Serialize(buf)
-	hash := common.Sha256D(buf.Bytes())
+	hash := Sha256D(buf.Bytes())
 	return hex.EncodeToString(hash[:])
 }
 

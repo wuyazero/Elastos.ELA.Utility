@@ -10,7 +10,7 @@ import (
 	"io"
 	"math/big"
 
-	"github.com/elastos/Elastos.ELA.Utility/common/serialize"
+	"github.com/elastos/Elastos.ELA.Utility/common"
 )
 
 const (
@@ -124,7 +124,7 @@ func (e *PublicKey) Serialize(w io.Writer) error {
 	}
 	bufX = append(bufX, e.X.Bytes()...)
 
-	if err := serialize.WriteVarBytes(w, bufX); err != nil {
+	if err := common.WriteVarBytes(w, bufX); err != nil {
 		return err
 	}
 
@@ -134,14 +134,14 @@ func (e *PublicKey) Serialize(w io.Writer) error {
 		bufY = append(bufY, 0x00)
 	}
 	bufY = append(bufY, e.Y.Bytes()...)
-	if err := serialize.WriteVarBytes(w, bufY); err != nil {
+	if err := common.WriteVarBytes(w, bufY); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (e *PublicKey) Deserialize(r io.Reader) error {
-	bufX, err := serialize.ReadVarBytes(r)
+	bufX, err := common.ReadVarBytes(r)
 	if err != nil {
 		return err
 	}
@@ -150,7 +150,7 @@ func (e *PublicKey) Deserialize(r io.Reader) error {
 	if len(bufX) == NegativeBigLength {
 		e.X.Neg(e.X)
 	}
-	bufY, err := serialize.ReadVarBytes(r)
+	bufY, err := common.ReadVarBytes(r)
 	if err != nil {
 		return err
 	}

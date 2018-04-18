@@ -6,9 +6,8 @@ import (
 	"os"
 	"testing"
 
+	. "github.com/elastos/Elastos.ELA.Utility/core"
 	. "github.com/elastos/Elastos.ELA.Utility/common"
-	"github.com/elastos/Elastos.ELA.Utility/core/auxpow"
-	"github.com/elastos/Elastos.ELA.Utility/core/ledger"
 )
 
 func TestMerkleBlock_GetTxMerkleBranch(t *testing.T) {
@@ -47,7 +46,7 @@ func run(txs uint32) {
 	merkleRoot := *mBlock.CalcHash(treeDepth(txs), 0)
 	// Create and return the merkle block.
 	merkleBlock := MerkleBlock{
-		Header: ledger.Header{
+		Header: Header{
 			MerkleRoot: merkleRoot,
 		},
 		Transactions: mBlock.NumTx,
@@ -74,7 +73,7 @@ func run(txs uint32) {
 			os.Exit(0)
 		}
 
-		calcRoot := auxpow.GetMerkleRoot(*txIds[i], mb.Branches, mb.Index)
+		calcRoot := GetMerkleRoot(*txIds[i], mb.Branches, mb.Index)
 		if merkleRoot == calcRoot {
 		} else {
 			fmt.Println("Merkle root not match, expect %s result %s", merkleRoot.String(), calcRoot.String())

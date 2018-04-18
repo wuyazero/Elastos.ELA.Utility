@@ -1,19 +1,19 @@
-package payload
+package core
 
 import (
 	"io"
 
-	"github.com/elastos/Elastos.ELA.Utility/common"
+	. "github.com/elastos/Elastos.ELA.Utility/common"
 )
 
 const SideMiningPayloadVersion byte = 0x00
 
-type SideMining struct {
-	SideBlockHash   common.Uint256
-	SideGenesisHash common.Uint256
+type PayloadSideMining struct {
+	SideBlockHash   Uint256
+	SideGenesisHash Uint256
 }
 
-func (a *SideMining) Data(version byte) []byte {
+func (a *PayloadSideMining) Data(version byte) []byte {
 	data := make([]uint8, 0)
 	data = append(data, a.SideBlockHash[:]...)
 	data = append(data, a.SideGenesisHash[:]...)
@@ -21,7 +21,7 @@ func (a *SideMining) Data(version byte) []byte {
 	return data[:]
 }
 
-func (a *SideMining) Serialize(w io.Writer, version byte) error {
+func (a *PayloadSideMining) Serialize(w io.Writer, version byte) error {
 	err := a.SideBlockHash.Serialize(w)
 	if err != nil {
 		return err
@@ -33,7 +33,7 @@ func (a *SideMining) Serialize(w io.Writer, version byte) error {
 	return nil
 }
 
-func (a *SideMining) Deserialize(r io.Reader, version byte) error {
+func (a *PayloadSideMining) Deserialize(r io.Reader, version byte) error {
 	err := a.SideBlockHash.Deserialize(r)
 	if err != nil {
 		return err

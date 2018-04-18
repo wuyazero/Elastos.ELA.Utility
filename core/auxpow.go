@@ -1,4 +1,4 @@
-package auxpow
+package core
 
 import (
 	"encoding/binary"
@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	. "github.com/elastos/Elastos.ELA.Utility/common"
-	"github.com/elastos/Elastos.ELA.Utility/common/serialize"
 )
 
 var (
@@ -51,13 +50,13 @@ func (ap *AuxPow) Serialize(w io.Writer) error {
 	}
 
 	idx := uint32(ap.AuxMerkleIndex)
-	err = serialize.WriteUint32(w, idx)
+	err = WriteUint32(w, idx)
 	if err != nil {
 		return err
 	}
 
 	count := uint64(len(ap.AuxMerkleBranch))
-	err = serialize.WriteVarUint(w, count)
+	err = WriteVarUint(w, count)
 	if err != nil {
 		return err
 	}
@@ -70,13 +69,13 @@ func (ap *AuxPow) Serialize(w io.Writer) error {
 	}
 
 	idx = uint32(ap.ParMerkleIndex)
-	err = serialize.WriteUint32(w, idx)
+	err = WriteUint32(w, idx)
 	if err != nil {
 		return err
 	}
 
 	count = uint64(len(ap.ParCoinBaseMerkle))
-	err = serialize.WriteVarUint(w, count)
+	err = WriteVarUint(w, count)
 	if err != nil {
 		return err
 	}
@@ -106,13 +105,13 @@ func (ap *AuxPow) Deserialize(r io.Reader) error {
 		return err
 	}
 
-	temp, err := serialize.ReadUint32(r)
+	temp, err := ReadUint32(r)
 	if err != nil {
 		return err
 	}
 	ap.AuxMerkleIndex = int(temp)
 
-	count, err := serialize.ReadVarUint(r, 0)
+	count, err := ReadVarUint(r, 0)
 	if err != nil {
 		return err
 	}
@@ -127,13 +126,13 @@ func (ap *AuxPow) Deserialize(r io.Reader) error {
 		ap.AuxMerkleBranch[i] = temp
 	}
 
-	temp, err = serialize.ReadUint32(r)
+	temp, err = ReadUint32(r)
 	if err != nil {
 		return err
 	}
 	ap.ParMerkleIndex = int(temp)
 
-	count, err = serialize.ReadVarUint(r, 0)
+	count, err = ReadVarUint(r, 0)
 	if err != nil {
 		return err
 	}

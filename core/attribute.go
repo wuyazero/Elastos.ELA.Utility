@@ -1,11 +1,11 @@
-package transaction
+package core
 
 import (
-	"github.com/elastos/Elastos.ELA.Utility/common/serialize"
 	"errors"
 	"io"
 	"fmt"
-	"github.com/elastos/Elastos.ELA.Utility/common"
+
+	. "github.com/elastos/Elastos.ELA.Utility/common"
 )
 
 type AttributeUsage byte
@@ -46,7 +46,7 @@ type Attribute struct {
 func (self Attribute) String() string {
 	return "Attribute: {\n\t\t" +
 		"Usage: " + self.Usage.Name() + "\n\t\t" +
-		"Data: " + common.BytesToHexString(self.Data) + "\n\t\t" +
+		"Data: " + BytesToHexString(self.Data) + "\n\t\t" +
 		"Size: " + fmt.Sprint(self.Size) + "\n\t" +
 		"}"
 }
@@ -65,20 +65,20 @@ func (u *Attribute) GetSize() uint32 {
 }
 
 func (tx *Attribute) Serialize(w io.Writer) error {
-	if err := serialize.WriteUint8(w, byte(tx.Usage)); err != nil {
+	if err := WriteUint8(w, byte(tx.Usage)); err != nil {
 		return errors.New("Transaction attribute Usage serialization error.")
 	}
 	if !IsValidAttributeType(tx.Usage) {
 		return errors.New("[Attribute error] Unsupported attribute Description.")
 	}
-	if err := serialize.WriteVarBytes(w, tx.Data); err != nil {
+	if err := WriteVarBytes(w, tx.Data); err != nil {
 		return errors.New("Transaction attribute Data serialization error.")
 	}
 	return nil
 }
 
 func (tx *Attribute) Deserialize(r io.Reader) error {
-	val, err := serialize.ReadBytes(r, 1)
+	val, err := ReadBytes(r, 1)
 	if err != nil {
 		return errors.New("Transaction attribute Usage deserialization error.")
 	}
@@ -86,7 +86,7 @@ func (tx *Attribute) Deserialize(r io.Reader) error {
 	if !IsValidAttributeType(tx.Usage) {
 		return errors.New("[Attribute error] Unsupported attribute Description.")
 	}
-	tx.Data, err = serialize.ReadVarBytes(r)
+	tx.Data, err = ReadVarBytes(r)
 	if err != nil {
 		return errors.New("Transaction attribute Data deserialization error.")
 	}

@@ -1,11 +1,10 @@
-package transaction
+package core
 
 import (
 	"io"
 	"bytes"
 
 	. "github.com/elastos/Elastos.ELA.Utility/common"
-	"github.com/elastos/Elastos.ELA.Utility/common/serialize"
 )
 
 type OutPoint struct {
@@ -24,11 +23,11 @@ func (op *OutPoint) IsEqual(o OutPoint) bool {
 }
 
 func (op *OutPoint) Serialize(w io.Writer) error {
-	return serialize.WriteElements(w, op.TxID, op.Index)
+	return WriteElements(w, op.TxID, op.Index)
 }
 
 func (op *OutPoint) Deserialize(r io.Reader) error {
-	return serialize.ReadElements(r, &op.TxID, &op.Index)
+	return ReadElements(r, &op.TxID, &op.Index)
 }
 
 func (op *OutPoint) Bytes() []byte {

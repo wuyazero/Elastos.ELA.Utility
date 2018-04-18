@@ -1,11 +1,10 @@
-package auxpow
+package core
 
 import (
 	"bytes"
 	"io"
 
 	. "github.com/elastos/Elastos.ELA.Utility/common"
-	"github.com/elastos/Elastos.ELA.Utility/common/serialize"
 )
 
 type BtcHeader struct {
@@ -18,7 +17,7 @@ type BtcHeader struct {
 }
 
 func (bh *BtcHeader) Serialize(w io.Writer) error {
-	err := serialize.WriteUint32(w, bh.Version)
+	err := WriteUint32(w, bh.Version)
 	if err != nil {
 		return err
 	}
@@ -33,17 +32,17 @@ func (bh *BtcHeader) Serialize(w io.Writer) error {
 		return err
 	}
 
-	err = serialize.WriteUint32(w, bh.Timestamp)
+	err = WriteUint32(w, bh.Timestamp)
 	if err != nil {
 		return err
 	}
 
-	err = serialize.WriteUint32(w, bh.Bits)
+	err = WriteUint32(w, bh.Bits)
 	if err != nil {
 		return err
 	}
 
-	err = serialize.WriteUint32(w, bh.Nonce)
+	err = WriteUint32(w, bh.Nonce)
 	if err != nil {
 		return err
 	}
@@ -54,7 +53,7 @@ func (bh *BtcHeader) Serialize(w io.Writer) error {
 func (bh *BtcHeader) Deserialize(r io.Reader) error {
 	var err error
 	//Version
-	bh.Version, err = serialize.ReadUint32(r)
+	bh.Version, err = ReadUint32(r)
 	if err != nil {
 		return err
 	}
@@ -72,19 +71,19 @@ func (bh *BtcHeader) Deserialize(r io.Reader) error {
 	}
 
 	//Timestamp
-	bh.Timestamp, err = serialize.ReadUint32(r)
+	bh.Timestamp, err = ReadUint32(r)
 	if err != nil {
 		return err
 	}
 
 	//Bits
-	bh.Bits, err = serialize.ReadUint32(r)
+	bh.Bits, err = ReadUint32(r)
 	if err != nil {
 		return err
 	}
 
 	//Nonce
-	bh.Nonce, err = serialize.ReadUint32(r)
+	bh.Nonce, err = ReadUint32(r)
 	if err != nil {
 		return err
 	}

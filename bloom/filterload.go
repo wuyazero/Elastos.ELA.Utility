@@ -3,7 +3,7 @@ package bloom
 import (
 	"bytes"
 
-	"github.com/elastos/Elastos.ELA.Utility/common/serialize"
+	"github.com/elastos/Elastos.ELA.Utility/common"
 )
 
 type FilterLoad struct {
@@ -18,7 +18,7 @@ func (msg *FilterLoad) CMD() string {
 
 func (msg *FilterLoad) Serialize() ([]byte, error) {
 	buf := new(bytes.Buffer)
-	err := serialize.WriteElements(buf, msg.Filter, msg.HashFuncs, msg.Tweak)
+	err := common.WriteElements(buf, msg.Filter, msg.HashFuncs, msg.Tweak)
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +28,7 @@ func (msg *FilterLoad) Serialize() ([]byte, error) {
 
 func (msg *FilterLoad) Deserialize(body []byte) error {
 	buf := bytes.NewReader(body)
-	err := serialize.ReadElements(buf, &msg.Filter, &msg.HashFuncs, &msg.Tweak)
+	err := common.ReadElements(buf, &msg.Filter, &msg.HashFuncs, &msg.Tweak)
 	if err != nil {
 		return err
 	}

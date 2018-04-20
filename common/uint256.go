@@ -10,6 +10,8 @@ const UINT256SIZE = 32
 
 type Uint256 [UINT256SIZE]uint8
 
+var EmptyHash = Uint256{}
+
 func (u Uint256) Compare(o Uint256) int {
 	for i := UINT256SIZE - 1; i >= 0; i-- {
 		if u[i] > o[i] {

@@ -20,10 +20,10 @@ func (t *PayloadWithdrawAsset) Data(version byte) []byte {
 }
 
 func (t *PayloadWithdrawAsset) Serialize(w io.Writer, version byte) error {
-
 	if err := WriteElements(w, t.BlockHeight, t.GenesisBlockAddress, t.SideChainTransactionHash); err != nil {
 		return errors.New("[WithdrawAsset], BlockHeight serialize failed.")
 	}
+  
 	return nil
 }
 

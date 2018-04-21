@@ -22,6 +22,7 @@ const (
 	SideMining              TransactionType = 0x05
 	IssueToken              TransactionType = 0x06
 	TransferCrossChainAsset TransactionType = 0x07
+	WithdrawAsset           TransactionType = 0x08
 )
 
 func (self TransactionType) Name() string {

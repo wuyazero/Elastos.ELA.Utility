@@ -1,9 +1,8 @@
 package msg
 
 import (
-	"bytes"
-
 	. "github.com/elastos/Elastos.ELA.Utility/common"
+	"io"
 )
 
 type DataReq struct {
@@ -22,22 +21,10 @@ func (msg *DataReq) CMD() string {
 	return "getdata"
 }
 
-func (msg *DataReq) Serialize() ([]byte, error) {
-	buf := new(bytes.Buffer)
-	err := WriteElements(buf, msg.Type, msg.Hash)
-	if err != nil {
-		return nil, err
-	}
-
-	return buf.Bytes(), nil
+func (msg *DataReq) Serialize(writer io.Writer) error {
+	return WriteElements(writer, msg.Type, msg.Hash)
 }
 
-func (msg *DataReq) Deserialize(body []byte) error {
-	buf := bytes.NewReader(body)
-	err := ReadElements(buf, &msg.Type, &msg.Hash)
-	if err != nil {
-		return err
-	}
-
-	return nil
+func (msg *DataReq) Deserialize(reader io.Reader) error {
+	return ReadElements(reader, &msg.Type, &msg.Hash)
 }

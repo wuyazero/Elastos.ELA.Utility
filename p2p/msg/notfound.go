@@ -1,8 +1,9 @@
 package msg
 
 import (
-	. "github.com/elastos/Elastos.ELA.Utility/common"
 	"io"
+
+	. "github.com/elastos/Elastos.ELA.Utility/common"
 )
 
 type NotFound struct {

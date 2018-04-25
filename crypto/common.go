@@ -9,7 +9,7 @@ import (
 
 	. "github.com/elastos/Elastos.ELA.Utility/common"
 
-	"github.com/golang/crypto/ripemd160"
+	"golang.org/x/crypto/ripemd160"
 )
 
 const (

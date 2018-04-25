@@ -2,8 +2,9 @@ package msg
 
 import (
 	"encoding/binary"
-	. "github.com/elastos/Elastos.ELA.Utility/common"
 	"io"
+
+	. "github.com/elastos/Elastos.ELA.Utility/common"
 )
 
 type Addrs struct {

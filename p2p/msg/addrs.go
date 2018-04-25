@@ -1,9 +1,9 @@
 package msg
 
 import (
-	"bytes"
 	"encoding/binary"
 	. "github.com/elastos/Elastos.ELA.Utility/common"
+	"io"
 )
 
 type Addrs struct {
@@ -20,28 +20,16 @@ func (msg *Addrs) CMD() string {
 	return "addr"
 }
 
-func (msg *Addrs) Serialize() ([]byte, error) {
-	buf := new(bytes.Buffer)
-	err := WriteElements(buf, uint32(len(msg.Addrs)), msg.Addrs)
-	if err != nil {
-		return nil, err
-	}
-
-	return buf.Bytes(), nil
+func (msg *Addrs) Serialize(writer io.Writer) error {
+	return WriteElements(writer, uint32(len(msg.Addrs)), msg.Addrs)
 }
 
-func (msg *Addrs) Deserialize(body []byte) error {
-	buf := bytes.NewReader(body)
-	count, err := ReadUint32(buf)
+func (msg *Addrs) Deserialize(reader io.Reader) error {
+	count, err := ReadUint32(reader)
 	if err != nil {
 		return err
 	}
 
 	msg.Addrs = make([]Addr, count)
-	err = binary.Read(buf, binary.LittleEndian, &msg.Addrs)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return binary.Read(reader, binary.LittleEndian, &msg.Addrs)
 }

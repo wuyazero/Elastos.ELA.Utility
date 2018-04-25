@@ -1,8 +1,8 @@
 package msg
 
 import (
-	"bytes"
 	"encoding/binary"
+	"io"
 )
 
 type Ping struct {
@@ -19,16 +19,10 @@ func (msg *Ping) CMD() string {
 	return "ping"
 }
 
-func (msg *Ping) Serialize() ([]byte, error) {
-	buf := new(bytes.Buffer)
-	err := binary.Write(buf, binary.LittleEndian, msg.Height)
-	if err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
+func (msg *Ping) Serialize(writer io.Writer) error {
+	return binary.Write(writer, binary.LittleEndian, msg.Height)
 }
 
-func (msg *Ping) Deserialize(body []byte) error {
-	buf := bytes.NewReader(body)
-	return binary.Read(buf, binary.LittleEndian, &msg.Height)
+func (msg *Ping) Deserialize(reader io.Reader) error {
+	return binary.Read(reader, binary.LittleEndian, &msg.Height)
 }

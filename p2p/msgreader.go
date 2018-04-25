@@ -4,12 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"bytes"
 )
 
 const MaxBufLen = 1024 * 16
 
 var (
-	ErrDisconnected = errors.New("disconnected")
+	ErrDisconnected   = errors.New("disconnected")
 	ErrUnmatchedMagic = errors.New("unmatched Magic")
 )
 
@@ -141,7 +142,7 @@ func (reader *MsgReader) decode(buf []byte) {
 		return
 	}
 
-	err = msg.Deserialize(buf[HEADERLEN:])
+	err = msg.Deserialize(bytes.NewReader(buf[HEADERLEN:]))
 	if err != nil {
 		reader.handler.OnDecodeError(errors.New("Deserialize message " + msg.CMD() + " error: " + err.Error()))
 		return

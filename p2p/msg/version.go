@@ -1,9 +1,8 @@
 package msg
 
 import (
-	"bytes"
 	"encoding/binary"
-	"errors"
+	"io"
 )
 
 type Version struct {
@@ -20,22 +19,10 @@ func (msg *Version) CMD() string {
 	return "version"
 }
 
-func (msg *Version) Serialize() ([]byte, error) {
-	buf := new(bytes.Buffer)
-	err := binary.Write(buf, binary.LittleEndian, msg)
-	if err != nil {
-		return nil, err
-	}
-
-	return buf.Bytes(), nil
+func (msg *Version) Serialize(writer io.Writer) error {
+	return binary.Write(writer, binary.LittleEndian, msg)
 }
 
-func (msg *Version) Deserialize(body []byte) error {
-	buf := bytes.NewBuffer(body)
-	err := binary.Read(buf, binary.LittleEndian, msg)
-	if err != nil {
-		return errors.New("Deserialize version message content error")
-	}
-
-	return nil
+func (msg *Version) Deserialize(reader io.Reader) error {
+	return binary.Read(reader, binary.LittleEndian, msg)
 }

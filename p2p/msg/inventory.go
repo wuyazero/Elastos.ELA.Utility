@@ -1,8 +1,8 @@
 package msg
 
 import (
-	"bytes"
 	. "github.com/elastos/Elastos.ELA.Utility/common"
+	"io"
 )
 
 type Inventory struct {
@@ -21,25 +21,18 @@ func (msg *Inventory) CMD() string {
 	return "inv"
 }
 
-func (msg *Inventory) Serialize() ([]byte, error) {
-	buf := new(bytes.Buffer)
+func (msg *Inventory) Serialize(writer io.Writer) error {
 	count := uint32(len(msg.Hashes))
-	err := WriteElements(buf, msg.Type, count, msg.Hashes)
-	if err != nil {
-		return nil, err
-	}
-
-	return buf.Bytes(), nil
+	return WriteElements(writer, msg.Type, count, msg.Hashes)
 }
 
-func (msg *Inventory) Deserialize(body []byte) error {
-	buf := bytes.NewReader(body)
+func (msg *Inventory) Deserialize(reader io.Reader) error {
 	var count uint32
-	err := ReadElements(buf, &msg.Type, &count)
+	err := ReadElements(reader, &msg.Type, &count)
 	if err != nil {
 		return err
 	}
 
 	msg.Hashes = make([]*Uint256, count)
-	return ReadElement(buf, &msg.Hashes)
+	return ReadElement(reader, &msg.Hashes)
 }

@@ -177,13 +177,11 @@ func (p PubKeySlice) Swap(i, j int) {
 }
 
 func Equal(e1 *PublicKey, e2 *PublicKey) bool {
-	r := e1.X.Cmp(e2.X)
-	if r != 0 {
+	if e1.X.Cmp(e2.X) != 0 {
 		return false
 	}
-	r = e1.Y.Cmp(e2.Y)
-	if r == 0 {
-		return true
+	if e1.Y.Cmp(e2.Y) != 0 {
+		return false
 	}
-	return false
+	return true
 }

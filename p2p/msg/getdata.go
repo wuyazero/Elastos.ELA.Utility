@@ -1,28 +1,26 @@
 package msg
 
 import (
-	"io"
 	"fmt"
+	"io"
 
 	"github.com/elastos/Elastos.ELA.Utility/common"
 	"github.com/elastos/Elastos.ELA.Utility/p2p"
 )
 
-const defaultInvListSize = 100
-
-type Inventory struct {
+type GetData struct {
 	InvList []*InvVect
 }
 
-func NewInventory() *Inventory {
-	msg := &Inventory{
+func NewGetData() *GetData {
+	msg := &GetData{
 		InvList: make([]*InvVect, 0, defaultInvListSize),
 	}
 	return msg
 }
 
 // AddInvVect adds an inventory vector to the message.
-func (msg *Inventory) AddInvVect(iv *InvVect) error {
+func (msg *GetData) AddInvVect(iv *InvVect) error {
 	if len(msg.InvList)+1 > MaxInvPerMsg {
 		return fmt.Errorf("GetData.AddInvVect too many invvect in message [max %v]", MaxInvPerMsg)
 	}
@@ -31,11 +29,11 @@ func (msg *Inventory) AddInvVect(iv *InvVect) error {
 	return nil
 }
 
-func (msg *Inventory) CMD() string {
-	return p2p.CmdInv
+func (msg *GetData) CMD() string {
+	return p2p.CmdGetData
 }
 
-func (msg *Inventory) Serialize(writer io.Writer) error {
+func (msg *GetData) Serialize(writer io.Writer) error {
 	count := uint32(len(msg.InvList))
 	if err := common.WriteElement(writer, count); err != nil {
 		return err
@@ -50,7 +48,7 @@ func (msg *Inventory) Serialize(writer io.Writer) error {
 	return nil
 }
 
-func (msg *Inventory) Deserialize(reader io.Reader) error {
+func (msg *GetData) Deserialize(reader io.Reader) error {
 	var count uint32
 	if err := common.ReadElement(reader, &count); err != nil {
 		return err

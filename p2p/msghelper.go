@@ -1,24 +1,23 @@
 package p2p
 
 import (
-	"errors"
+	"bytes"
 	"fmt"
 	"net"
-	"bytes"
 )
 
 const MaxBufLen = 1024 * 16
 
 var (
-	ErrDisconnected   = errors.New("disconnected")
-	ErrUnmatchedMagic = errors.New("unmatched Magic")
+	ErrDisconnected   = fmt.Errorf("[MsgHelper] peer disconnected")
+	ErrUnmatchedMagic = fmt.Errorf("[MsgHelper] unmatched Magic")
 )
 
 // The interface to callback message read errors, message creation and decoded message.
-type MsgDecodeHandler interface {
+type MsgHandler interface {
 	// When something wrong on read or decode message
 	// this method will callback the error
-	OnDecodeError(err error)
+	OnError(err error)
 
 	// After message header decoded, this method will be
 	// called to create the message instance with the CMD
@@ -35,144 +34,147 @@ type MsgHelper struct {
 	len     int
 	magic   uint32
 	conn    net.Conn
-	handler MsgDecodeHandler
+	handler MsgHandler
 }
 
 // NewMsgHelper create a new instance of *MsgHelper
-func NewMsgHelper(magic uint32, conn net.Conn, handler MsgDecodeHandler) *MsgHelper {
-	reader := new(MsgHelper)
-	reader.magic = magic
-	reader.conn = conn
-	reader.handler = handler
-	return reader
+func NewMsgHelper(magic uint32, conn net.Conn, handler MsgHandler) *MsgHelper {
+	helper := new(MsgHelper)
+	helper.magic = magic
+	helper.conn = conn
+	helper.handler = handler
+	return helper
 }
 
-func (reader *MsgHelper) Magic() uint32 {
-	return reader.magic
+func (helper *MsgHelper) Update(handler MsgHandler) {
+	helper.handler = handler
 }
 
-func (reader *MsgHelper) Conn() net.Conn {
-	return reader.conn
+func (helper *MsgHelper) Read() {
+	go func() {
+		var buf = make([]byte, MaxBufLen)
+		for {
+			len, err := helper.conn.Read(buf[0: MaxBufLen-1])
+			buf[MaxBufLen-1] = 0 //Prevent overflow
+			switch err {
+			case nil:
+				helper.unpack(buf[:len])
+			default:
+				goto ERROR
+			}
+		}
+	ERROR:
+		helper.handler.OnError(ErrDisconnected)
+	}()
 }
 
-func (reader *MsgHelper) Build(msg Message) ([]byte, error) {
+func (helper *MsgHelper) Write(msg Message) {
 	buf := new(bytes.Buffer)
 	err := msg.Serialize(buf)
 	if err != nil {
-		return nil, err
+		helper.handler.OnError(fmt.Errorf("[MsgHelper] serialize message failed %s", err.Error()))
+		return
 	}
-	hdr, err := buildHeader(reader.magic, msg.CMD(), buf.Bytes()).Serialize()
+	hdr, err := buildHeader(helper.magic, msg.CMD(), buf.Bytes()).Serialize()
 	if err != nil {
-		return nil, err
+		helper.handler.OnError(fmt.Errorf("[MsgHelper] serialize message header failed %s", err.Error()))
+		return
 	}
 
-	return append(hdr, buf.Bytes()...), nil
-}
-
-func (reader *MsgHelper) Read() {
-	var buf = make([]byte, MaxBufLen)
-	for {
-		len, err := reader.conn.Read(buf[0:MaxBufLen-1])
-		buf[MaxBufLen-1] = 0 //Prevent overflow
-		switch err {
-		case nil:
-			reader.unpack(buf[:len])
-		default:
-			goto ERROR
-		}
+	_, err = helper.conn.Write(append(hdr, buf.Bytes()...))
+	if err != nil {
+		helper.handler.OnError(ErrDisconnected)
 	}
-ERROR:
-	reader.handler.OnDecodeError(ErrDisconnected)
 }
 
-func (reader *MsgHelper) append(msg []byte) {
-	reader.buf = append(reader.buf, msg...)
+func (helper *MsgHelper) append(msg []byte) {
+	helper.buf = append(helper.buf, msg...)
 }
 
-func (reader *MsgHelper) reset() {
-	reader.buf = nil
-	reader.len = 0
+func (helper *MsgHelper) reset() {
+	helper.buf = nil
+	helper.len = 0
 }
 
-func (reader *MsgHelper) unpack(buf []byte) {
+func (helper *MsgHelper) unpack(buf []byte) {
 	if len(buf) == 0 {
 		return
 	}
 
-	if reader.len == 0 { // Buffering message header
-		index := HEADERLEN - len(reader.buf)
+	if helper.len == 0 { // Buffering message header
+		index := HEADERLEN - len(helper.buf)
 		if index > len(buf) { // header not finished, continue read
 			index = len(buf)
-			reader.append(buf[0:index])
+			helper.append(buf[0:index])
 			return
 		}
 
-		reader.append(buf[0:index])
+		helper.append(buf[0:index])
 
 		var header header
-		err := header.Deserialize(reader.buf)
+		err := header.Deserialize(helper.buf)
 		if err != nil {
-			fmt.Println("Get error message header, relocate the msg header")
-			reader.reset()
+			helper.reset()
 			return
 		}
 
-		if header.Magic != reader.magic {
-			reader.handler.OnDecodeError(ErrUnmatchedMagic)
+		if header.Magic != helper.magic {
+			helper.handler.OnError(ErrUnmatchedMagic)
 			return
 		}
 
-		reader.len = int(header.Length)
+		helper.len = int(header.Length)
 		buf = buf[index:]
 	}
 
-	msgLen := reader.len
+	msgLen := helper.len
 
 	if len(buf) == msgLen { // Just read the full message
 
-		reader.append(buf[:])
-		go reader.decode(reader.buf)
-		reader.reset()
+		helper.append(buf[:])
+		helper.decode(helper.buf)
+		helper.reset()
 
 	} else if len(buf) < msgLen { // Read part of the message
 
-		reader.append(buf[:])
-		reader.len = msgLen - len(buf)
+		helper.append(buf[:])
+		helper.len = msgLen - len(buf)
 
 	} else { // Read more than the message
 
-		reader.append(buf[0:msgLen])
-		go reader.decode(reader.buf)
-		reader.reset()
-		reader.unpack(buf[msgLen:])
+		helper.append(buf[0:msgLen])
+		helper.decode(helper.buf)
+		helper.reset()
+		helper.unpack(buf[msgLen:])
 	}
 }
 
-func (reader *MsgHelper) decode(buf []byte) {
+func (helper *MsgHelper) decode(buf []byte) {
 	if len(buf) < HEADERLEN {
-		reader.handler.OnDecodeError(errors.New("message Length is not enough"))
+		helper.handler.OnError(fmt.Errorf("[MsgHelper] message Length is not enough"))
 		return
 	}
 
 	hdr, err := verify(buf)
 	if err != nil {
-		reader.handler.OnDecodeError(errors.New("verify message header error: " + err.Error()))
+		helper.handler.OnError(fmt.Errorf("[MsgHelper] verify message header failed %s ", err.Error()))
 		return
 	}
 
-	msg, err := reader.handler.OnMakeMessage(hdr.GetCMD())
+	msg, err := helper.handler.OnMakeMessage(hdr.GetCMD())
 	if err != nil {
-		reader.handler.OnDecodeError(errors.New("make message error, " + err.Error()))
+		helper.handler.OnError(fmt.Errorf("[MsgHelper] make message failed %s", err.Error()))
 		return
 	}
 
 	err = msg.Deserialize(bytes.NewReader(buf[HEADERLEN:]))
 	if err != nil {
-		reader.handler.OnDecodeError(errors.New("Deserialize message " + msg.CMD() + " error: " + err.Error()))
+		helper.handler.OnError(
+			fmt.Errorf("[MsgHelper] Deserialize message %s failed %s", msg.CMD(), err.Error()))
 		return
 	}
 
-	reader.handler.OnMessageDecoded(msg)
+	helper.handler.OnMessageDecoded(msg)
 }
 
 func verify(buf []byte) (*header, error) {

@@ -13,11 +13,6 @@ import (
 )
 
 const (
-	// Address types
-	STANDARD   = 0xAC
-	MULTISIG   = 0xAE
-	CROSSCHAIN = 0xAF
-
 	PUSH1 = 0x51
 
 	// encoded public key length 0x21 || encoded public key (33 bytes) || OP_CHECKSIG(0xac)
@@ -39,11 +34,11 @@ func ToProgramHash(code []byte) (*Uint168, error) {
 
 	signType := code[len(code)-1]
 	if signType == STANDARD {
-		f = append([]byte{33}, f...)
+		f = append([]byte{PrefixStandard}, f...)
 	} else if signType == MULTISIG {
-		f = append([]byte{18}, f...)
+		f = append([]byte{PrefixMultisig}, f...)
 	} else if signType == CROSSCHAIN {
-		f = append([]byte{75}, f...)
+		f = append([]byte{PrefixCrossChain}, f...)
 	}
 
 	return Uint168FromBytes(f)
@@ -89,7 +84,7 @@ func CreateMultiSignRedeemScript(M uint, publicKeys []*PublicKey) ([]byte, error
 }
 
 func ParseMultisigScript(code []byte) ([][]byte, error) {
-	if len(code) < MinMultiSignCodeLength || code[len(code)-1] != CROSSCHAIN {
+	if len(code) < MinMultiSignCodeLength || code[len(code)-1] != MULTISIG {
 		return nil, errors.New("not a valid multi sign transaction code, length not enough")
 	}
 	// remove last byte MULTISIG
@@ -100,6 +95,31 @@ func ParseMultisigScript(code []byte) ([][]byte, error) {
 	code = code[:len(code)-1]
 	if len(code)%(PublicKeyScriptLength-1) != 0 {
 		return nil, errors.New("not a valid multi sign transaction code, length not match")
+	}
+
+	var publicKeys [][]byte
+	i := 0
+	for i < len(code) {
+		script := make([]byte, PublicKeyScriptLength-1)
+		copy(script, code[i:i+PublicKeyScriptLength-1])
+		i += PublicKeyScriptLength - 1
+		publicKeys = append(publicKeys, script)
+	}
+	return publicKeys, nil
+}
+
+func ParseCrossChainScript(code []byte) ([][]byte, error) {
+	if len(code) < MinMultiSignCodeLength || code[len(code)-1] != CROSSCHAIN {
+		return nil, errors.New("not a valid cross chain transaction code, length not enough")
+	}
+	// remove last byte MULTISIG
+	code = code[:len(code)-1]
+	// remove m
+	code = code[1:]
+	// remove n
+	code = code[:len(code)-1]
+	if len(code)%(PublicKeyScriptLength-1) != 0 {
+		return nil, errors.New("not a valid cross chain transaction code, length not match")
 	}
 
 	var publicKeys [][]byte

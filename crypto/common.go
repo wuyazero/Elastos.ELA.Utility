@@ -192,7 +192,7 @@ func AppendSignature(signerIndex int, signature, data, code, param []byte) ([]by
 		}
 		for i := 0; i < len(param); i += SignatureScriptLength {
 			// Remove length byte
-			sign := param[i: i+SignatureScriptLength][1:]
+			sign := param[i : i+SignatureScriptLength][1:]
 			publicKey := publicKeys[signerIndex][1:]
 			pubKey, err := DecodePoint(publicKey)
 			if err != nil {

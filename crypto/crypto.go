@@ -1,10 +1,10 @@
 package crypto
 
 import (
-	"crypto/rand"
 	"crypto/ecdsa"
-	"crypto/sha256"
 	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"io"

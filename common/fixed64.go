@@ -1,12 +1,12 @@
 package common
 
 import (
-	"io"
 	"bytes"
+	"encoding/binary"
 	"errors"
+	"io"
 	"strconv"
 	"strings"
-	"encoding/binary"
 )
 
 //the 64 bit fixed-point number, precise 10^-8

@@ -1,10 +1,10 @@
 package common
 
 import (
-	"io"
-	"errors"
-	"math/big"
 	"encoding/binary"
+	"errors"
+	"io"
+	"math/big"
 
 	"github.com/itchyny/base58-go"
 )

@@ -1,9 +1,9 @@
 package common
 
 import (
-	"io"
-	"errors"
 	"encoding/binary"
+	"errors"
+	"io"
 )
 
 const UINT256SIZE = 32

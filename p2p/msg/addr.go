@@ -2,8 +2,8 @@ package msg
 
 import (
 	"fmt"
-	"time"
 	"net"
+	"time"
 )
 
 type Addr struct {

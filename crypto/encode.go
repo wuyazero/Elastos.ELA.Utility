@@ -1,11 +1,11 @@
 package crypto
 
 import (
-	"errors"
-	"math/big"
-	"crypto/rand"
 	"crypto/ecdsa"
 	"crypto/elliptic"
+	"crypto/rand"
+	"errors"
+	"math/big"
 )
 
 const (
@@ -258,8 +258,8 @@ func DecodePoint(encodeData []byte) (*PublicKey, error) {
 		return pubKey, nil
 
 	case 0x04, 0x06, 0x07: //uncompressed
-		pubKeyX := new(big.Int).SetBytes(encodeData[FLAGLEN: FLAGLEN+XORYVALUELEN])
-		pubKeyY := new(big.Int).SetBytes(encodeData[FLAGLEN+XORYVALUELEN: NOCOMPRESSEDLEN])
+		pubKeyX := new(big.Int).SetBytes(encodeData[FLAGLEN : FLAGLEN+XORYVALUELEN])
+		pubKeyY := new(big.Int).SetBytes(encodeData[FLAGLEN+XORYVALUELEN : NOCOMPRESSEDLEN])
 		return &PublicKey{pubKeyX, pubKeyY}, nil
 
 	default:

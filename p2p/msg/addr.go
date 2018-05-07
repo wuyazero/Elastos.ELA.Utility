@@ -1,30 +1,37 @@
 package msg
 
 import (
-	"fmt"
-	"net"
-	"time"
+	"encoding/binary"
+	"io"
+
+	"github.com/elastos/Elastos.ELA.Utility/common"
+	"github.com/elastos/Elastos.ELA.Utility/p2p"
 )
 
 type Addr struct {
-	Time     int64
-	Services uint64
-	IP       [16]byte
-	Port     uint16
-	ID       uint64 // Unique ID
+	AddrList []p2p.NetAddress
 }
 
-func NewPeerAddr(services uint64, ip [16]byte, port uint16, id uint64) *Addr {
-	return &Addr{
-		Time:     time.Now().UnixNano(),
-		Services: services,
-		IP:       ip,
-		Port:     port,
-		ID:       id,
+func NewAddr(addresses []p2p.NetAddress) *Addr {
+	msg := new(Addr)
+	msg.AddrList = addresses
+	return msg
+}
+
+func (msg *Addr) CMD() string {
+	return p2p.CmdAddr
+}
+
+func (msg *Addr) Serialize(writer io.Writer) error {
+	return common.WriteElements(writer, uint64(len(msg.AddrList)), msg.AddrList)
+}
+
+func (msg *Addr) Deserialize(reader io.Reader) error {
+	count, err := common.ReadUint64(reader)
+	if err != nil {
+		return err
 	}
-}
 
-func (addr *Addr) String() string {
-	var ip net.IP = addr.IP[:]
-	return fmt.Sprint(ip.String(), ":", addr.Port)
+	msg.AddrList = make([]p2p.NetAddress, count)
+	return binary.Read(reader, binary.LittleEndian, &msg.AddrList)
 }

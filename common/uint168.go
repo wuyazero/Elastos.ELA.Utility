@@ -9,7 +9,17 @@ import (
 	"github.com/itchyny/base58-go"
 )
 
-const UINT168SIZE = 21
+const (
+	UINT168SIZE = 21
+	// Address types
+	STANDARD   = 0xAC
+	MULTISIG   = 0xAE
+	CROSSCHAIN = 0xAF
+
+	PrefixStandard   = 0x21
+	PrefixMultisig   = 0x12
+	PrefixCrossChain = 0x4B
+)
 
 type Uint168 [UINT168SIZE]uint8
 
@@ -17,12 +27,14 @@ func (u Uint168) String() string {
 	return BytesToHexString(u.Bytes())
 }
 
-func (u *Uint168) Valid() bool {
+func (u *Uint168) IsValid() bool {
 	var empty = Uint168{}
-	if u[0] == 18 || u[0] == 33 || u[0] == 75 || *u == empty {
-		return true
+	prefix := u[0]
+	if prefix != PrefixStandard && prefix != PrefixMultisig && prefix != PrefixCrossChain && *u != empty {
+		return false
 	}
-	return false
+
+	return true
 }
 
 func (u Uint168) Compare(o Uint168) int {
@@ -70,19 +82,25 @@ func (u *Uint168) ToAddress() (string, error) {
 
 func Uint168FromBytes(bytes []byte) (*Uint168, error) {
 	if len(bytes) != UINT168SIZE {
-		return nil, errors.New("Uint168FromBytes err, len != 21")
-	}
-
-	if bytes[0] != 18 && bytes[0] != 33 && bytes[0] != 75 {
-		return nil, errors.New("invalid address type, unknown prefix")
+		return nil, errors.New("[Uint168FromBytes] error, len != 21")
 	}
 
 	var hash = &Uint168{}
-	for i := 0; i < UINT168SIZE; i++ {
-		hash[i] = bytes[i]
-	}
+	copy(hash[:], bytes)
 
 	return hash, nil
+}
+
+func Uint168FromBytesWithCheck(bytes []byte) (*Uint168, error) {
+	programHash, err := Uint168FromBytes(bytes)
+	if err != nil {
+		return nil, err
+	}
+	if !programHash.IsValid() {
+		return nil, errors.New("[Uint168FromBytesWithCheck] invalid address type, unknown prefix")
+	}
+
+	return programHash, nil
 }
 
 func Uint168FromAddress(address string) (*Uint168, error) {
@@ -93,19 +111,44 @@ func Uint168FromAddress(address string) (*Uint168, error) {
 
 	x, _ := new(big.Int).SetString(string(decoded), 10)
 
-	ph, err := Uint168FromBytes(x.Bytes()[0:21])
+	programHash, err := Uint168FromBytes(x.Bytes()[0:21])
 	if err != nil {
 		return nil, err
 	}
 
-	addr, err := ph.ToAddress()
+	addr, err := programHash.ToAddress()
 	if err != nil {
 		return nil, err
 	}
 
 	if addr != address {
-		return nil, errors.New("[AddressToProgramHash]: decode address verify failed.")
+		return nil, errors.New("[Uint168FromAddress]: decode address verify failed.")
 	}
 
-	return ph, nil
+	return programHash, nil
+}
+
+func Uint168FromAddressWithCheck(address string) (*Uint168, error) {
+	decoded, err := base58.BitcoinEncoding.Decode([]byte(address))
+	if err != nil {
+		return nil, err
+	}
+
+	x, _ := new(big.Int).SetString(string(decoded), 10)
+
+	programHash, err := Uint168FromBytesWithCheck(x.Bytes()[0:21])
+	if err != nil {
+		return nil, err
+	}
+
+	addr, err := programHash.ToAddress()
+	if err != nil {
+		return nil, err
+	}
+
+	if addr != address {
+		return nil, errors.New("[Uint168FromAddressWithCheck]: decode address verify failed.")
+	}
+
+	return programHash, nil
 }

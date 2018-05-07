@@ -8,32 +8,32 @@ import (
 	"github.com/elastos/Elastos.ELA.Utility/p2p"
 )
 
-type NotFound struct {
+type GetData struct {
 	InvList []*InvVect
 }
 
-func NewNotFound() *NotFound {
-	msg := &NotFound{
+func NewGetData() *GetData {
+	msg := &GetData{
 		InvList: make([]*InvVect, 0, defaultInvListSize),
 	}
 	return msg
 }
 
 // AddInvVect adds an inventory vector to the message.
-func (msg *NotFound) AddInvVect(iv *InvVect) error {
+func (msg *GetData) AddInvVect(iv *InvVect) error {
 	if len(msg.InvList)+1 > MaxInvPerMsg {
-		return fmt.Errorf("NotFound.AddInvVect too many invvect in message [max %v]", MaxInvPerMsg)
+		return fmt.Errorf("GetData.AddInvVect too many invvect in message [max %v]", MaxInvPerMsg)
 	}
 
 	msg.InvList = append(msg.InvList, iv)
 	return nil
 }
 
-func (msg *NotFound) CMD() string {
-	return p2p.CmdNotFound
+func (msg *GetData) CMD() string {
+	return p2p.CmdGetData
 }
 
-func (msg *NotFound) Serialize(writer io.Writer) error {
+func (msg *GetData) Serialize(writer io.Writer) error {
 	count := uint32(len(msg.InvList))
 	if err := common.WriteElement(writer, count); err != nil {
 		return err
@@ -48,7 +48,7 @@ func (msg *NotFound) Serialize(writer io.Writer) error {
 	return nil
 }
 
-func (msg *NotFound) Deserialize(reader io.Reader) error {
+func (msg *GetData) Deserialize(reader io.Reader) error {
 	var count uint32
 	if err := common.ReadElement(reader, &count); err != nil {
 		return err

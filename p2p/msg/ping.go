@@ -2,27 +2,28 @@ package msg
 
 import (
 	"encoding/binary"
+	"github.com/elastos/Elastos.ELA.Utility/p2p"
 	"io"
 )
 
 type Ping struct {
-	Height uint64
+	Nonce uint64
 }
 
-func NewPing(height uint32) *Ping {
+func NewPing(nonce uint32) *Ping {
 	ping := new(Ping)
-	ping.Height = uint64(height)
+	ping.Nonce = uint64(nonce)
 	return ping
 }
 
 func (msg *Ping) CMD() string {
-	return "ping"
+	return p2p.CmdPing
 }
 
 func (msg *Ping) Serialize(writer io.Writer) error {
-	return binary.Write(writer, binary.LittleEndian, msg.Height)
+	return binary.Write(writer, binary.LittleEndian, msg.Nonce)
 }
 
 func (msg *Ping) Deserialize(reader io.Reader) error {
-	return binary.Read(reader, binary.LittleEndian, &msg.Height)
+	return binary.Read(reader, binary.LittleEndian, &msg.Nonce)
 }

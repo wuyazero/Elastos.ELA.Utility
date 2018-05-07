@@ -2,6 +2,7 @@ package msg
 
 import (
 	"encoding/binary"
+	"github.com/elastos/Elastos.ELA.Utility/p2p"
 	"io"
 )
 
@@ -16,7 +17,7 @@ type Version struct {
 }
 
 func (msg *Version) CMD() string {
-	return "version"
+	return p2p.CmdVersion
 }
 
 func (msg *Version) Serialize(writer io.Writer) error {

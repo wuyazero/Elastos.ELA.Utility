@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 
-	. "github.com/elastos/Elastos.ELA.Utility/common"
+	"github.com/elastos/Elastos.ELA.Utility/common"
 )
 
 const (
@@ -26,7 +26,7 @@ type header struct {
 
 func buildHeader(magic uint32, cmd string, body []byte) *header {
 	// Calculate Checksum
-	checksum := Sha256D(body)
+	checksum := common.Sha256D(body)
 
 	header := new(header)
 	// Write Magic
@@ -43,7 +43,7 @@ func buildHeader(magic uint32, cmd string, body []byte) *header {
 
 func (header *header) Verify(buf []byte) error {
 	// Verify Checksum
-	sum := Sha256D(buf)
+	sum := common.Sha256D(buf)
 	checksum := sum[:CHECKSUMLEN]
 	if !bytes.Equal(header.Checksum[:], checksum) {
 		return errors.New(
@@ -66,7 +66,7 @@ func (header *header) Serialize() ([]byte, error) {
 }
 
 func (header *header) Deserialize(buf []byte) error {
-	cmd := buf[CMDOFFSET:CMDOFFSET+CMDLEN]
+	cmd := buf[CMDOFFSET : CMDOFFSET+CMDLEN]
 	end := bytes.IndexByte(cmd, 0)
 	if end < 0 || end >= CMDLEN {
 		return errors.New("Unexpected Length of CMD")

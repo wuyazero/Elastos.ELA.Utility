@@ -4,7 +4,7 @@ import "sync"
 
 // Peer states
 const (
-	INIT       = iota
+	INIT = iota
 	HAND
 	HANDSHAKE
 	HANDSHAKED

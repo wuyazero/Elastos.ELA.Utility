@@ -15,7 +15,7 @@ var (
 )
 
 // The interface to callback message read errors, message creation and decoded message.
-type MsgReadHandler interface {
+type MsgDecodeHandler interface {
 	// When something wrong on read or decode message
 	// this method will callback the error
 	OnDecodeError(err error)
@@ -30,22 +30,46 @@ type MsgReadHandler interface {
 	OnMessageDecoded(msg Message)
 }
 
-type MsgReader struct {
+type MsgHelper struct {
 	buf     []byte
 	len     int
+	magic   uint32
 	conn    net.Conn
-	handler MsgReadHandler
+	handler MsgDecodeHandler
 }
 
-// NewMsgReader create a new instance of *MsgReader
-func NewMsgReader(conn net.Conn, handler MsgReadHandler) *MsgReader {
-	reader := new(MsgReader)
+// NewMsgHelper create a new instance of *MsgHelper
+func NewMsgHelper(magic uint32, conn net.Conn, handler MsgDecodeHandler) *MsgHelper {
+	reader := new(MsgHelper)
+	reader.magic = magic
 	reader.conn = conn
 	reader.handler = handler
 	return reader
 }
 
-func (reader *MsgReader) Read() {
+func (reader *MsgHelper) Magic() uint32 {
+	return reader.magic
+}
+
+func (reader *MsgHelper) Conn() net.Conn {
+	return reader.conn
+}
+
+func (reader *MsgHelper) Build(msg Message) ([]byte, error) {
+	buf := new(bytes.Buffer)
+	err := msg.Serialize(buf)
+	if err != nil {
+		return nil, err
+	}
+	hdr, err := buildHeader(reader.magic, msg.CMD(), buf.Bytes()).Serialize()
+	if err != nil {
+		return nil, err
+	}
+
+	return append(hdr, buf.Bytes()...), nil
+}
+
+func (reader *MsgHelper) Read() {
 	var buf = make([]byte, MaxBufLen)
 	for {
 		len, err := reader.conn.Read(buf[0:MaxBufLen-1])
@@ -61,16 +85,16 @@ ERROR:
 	reader.handler.OnDecodeError(ErrDisconnected)
 }
 
-func (reader *MsgReader) append(msg []byte) {
+func (reader *MsgHelper) append(msg []byte) {
 	reader.buf = append(reader.buf, msg...)
 }
 
-func (reader *MsgReader) reset() {
+func (reader *MsgHelper) reset() {
 	reader.buf = nil
 	reader.len = 0
 }
 
-func (reader *MsgReader) unpack(buf []byte) {
+func (reader *MsgHelper) unpack(buf []byte) {
 	if len(buf) == 0 {
 		return
 	}
@@ -93,7 +117,7 @@ func (reader *MsgReader) unpack(buf []byte) {
 			return
 		}
 
-		if header.Magic != Magic {
+		if header.Magic != reader.magic {
 			reader.handler.OnDecodeError(ErrUnmatchedMagic)
 			return
 		}
@@ -124,7 +148,7 @@ func (reader *MsgReader) unpack(buf []byte) {
 	}
 }
 
-func (reader *MsgReader) decode(buf []byte) {
+func (reader *MsgHelper) decode(buf []byte) {
 	if len(buf) < HEADERLEN {
 		reader.handler.OnDecodeError(errors.New("message Length is not enough"))
 		return

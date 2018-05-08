@@ -17,8 +17,6 @@ const (
 	HEADERLEN   = 24
 )
 
-var Magic uint32
-
 type header struct {
 	Magic    uint32
 	CMD      [CMDLEN]byte
@@ -26,13 +24,13 @@ type header struct {
 	Checksum [CHECKSUMLEN]byte
 }
 
-func buildHeader(cmd string, body []byte) *header {
+func buildHeader(magic uint32, cmd string, body []byte) *header {
 	// Calculate Checksum
 	checksum := Sha256D(body)
 
 	header := new(header)
 	// Write Magic
-	header.Magic = Magic
+	header.Magic = magic
 	// Write CMD
 	copy(header.CMD[:len(cmd)], cmd)
 	// Write Length
@@ -44,11 +42,6 @@ func buildHeader(cmd string, body []byte) *header {
 }
 
 func (header *header) Verify(buf []byte) error {
-	// Verify Magic
-	if header.Magic != Magic {
-		return errors.New(fmt.Sprint("Unmatched Magic number ", header.Magic))
-	}
-
 	// Verify Checksum
 	sum := Sha256D(buf)
 	checksum := sum[:CHECKSUMLEN]

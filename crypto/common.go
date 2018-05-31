@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"errors"
-	"io"
-
 	. "github.com/elastos/Elastos.ELA.Utility/common"
 
 	"golang.org/x/crypto/ripemd160"
@@ -29,21 +27,33 @@ func ToProgramHash(code []byte) (*Uint168, error) {
 	if len(code) < 1 {
 		return nil, errors.New("[ToProgramHash] failed, empty program code")
 	}
-	temp := sha256.Sum256(code)
-	md := ripemd160.New()
-	io.WriteString(md, string(temp[:]))
-	f := md.Sum(nil)
 
-	signType := code[len(code)-1]
-	if signType == STANDARD {
-		f = append([]byte{PrefixStandard}, f...)
-	} else if signType == MULTISIG {
-		f = append([]byte{PrefixMultisig}, f...)
-	} else if signType == CROSSCHAIN {
-		f = append([]byte{PrefixCrossChain}, f...)
+	sum168 := func(prefix byte, code []byte) []byte {
+		hash := sha256.Sum256(code)
+		md160 := ripemd160.New()
+		md160.Write(hash[:])
+		return md160.Sum([]byte{prefix})
 	}
 
-	return Uint168FromBytes(f)
+	switch code[len(code)-1] {
+	case STANDARD:
+		if len(code) != PublicKeyScriptLength {
+			return nil, errors.New("[ToProgramHash] error, not a valid checksig script")
+		}
+		return Uint168FromBytes(sum168(PrefixStandard, code))
+	case MULTISIG:
+		if len(code) < MinMultiSignCodeLength || (len(code)-3)%(PublicKeyScriptLength-1) != 0 {
+			return nil, errors.New("[ToProgramHash] error, not a valid multisig script")
+		}
+		return Uint168FromBytes(sum168(PrefixMultisig, code))
+	case CROSSCHAIN:
+		if len(code) < MinMultiSignCodeLength || (len(code)-3)%(PublicKeyScriptLength-1) != 0 {
+			return nil, errors.New("[ToProgramHash] error, not a valid crosschain script")
+		}
+		return Uint168FromBytes(sum168(PrefixCrossChain, code))
+	default:
+		return nil, errors.New("[ToProgramHash] error, unknown script type")
+	}
 }
 
 func CreateStandardRedeemScript(publicKey *PublicKey) ([]byte, error) {
@@ -216,7 +226,7 @@ func AppendSignature(signerIndex int, signature, data, code, param []byte) ([]by
 		}
 		for i := 0; i < len(param); i += SignatureScriptLength {
 			// Remove length byte
-			sign := param[i: i+SignatureScriptLength][1:]
+			sign := param[i : i+SignatureScriptLength][1:]
 			publicKey := publicKeys[signerIndex][1:]
 			pubKey, err := DecodePoint(publicKey)
 			if err != nil {

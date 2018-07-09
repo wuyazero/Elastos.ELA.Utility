@@ -9,8 +9,10 @@ import (
 const MaxBufLen = 1024 * 16
 
 var (
-	ErrDisconnected   = fmt.Errorf("[MsgHelper] peer disconnected")
-	ErrUnmatchedMagic = fmt.Errorf("[MsgHelper] unmatched Magic")
+	ErrDisconnected    = fmt.Errorf("[MsgHelper] peer disconnected")
+	ErrInvalidHeader   = fmt.Errorf("[MsgHelper] invalid message header")
+	ErrUnmatchedMagic  = fmt.Errorf("[MsgHelper] unmatched magic")
+	ErrMsgSizeExceeded = fmt.Errorf("[MsgHelper] message size exceeded")
 )
 
 // The interface to callback message read errors, message creation and decoded message.
@@ -30,17 +32,19 @@ type MsgHandler interface {
 }
 
 type MsgHelper struct {
-	buf     []byte
-	len     int
-	magic   uint32
-	conn    net.Conn
-	handler MsgHandler
+	buf        []byte
+	len        int
+	magic      uint32
+	maxMsgSize uint32
+	conn       net.Conn
+	handler    MsgHandler
 }
 
 // NewMsgHelper create a new instance of *MsgHelper
-func NewMsgHelper(magic uint32, conn net.Conn, handler MsgHandler) *MsgHelper {
+func NewMsgHelper(magic, maxMsgSize uint32, conn net.Conn, handler MsgHandler) *MsgHelper {
 	helper := new(MsgHelper)
 	helper.magic = magic
+	helper.maxMsgSize = maxMsgSize
 	helper.conn = conn
 	helper.handler = handler
 	return helper
@@ -87,8 +91,9 @@ func (helper *MsgHelper) Write(msg Message) {
 	}
 }
 
-func (helper *MsgHelper) append(msg []byte) {
+func (helper *MsgHelper) append(msg []byte) []byte {
 	helper.buf = append(helper.buf, msg...)
+	return helper.buf
 }
 
 func (helper *MsgHelper) reset() {
@@ -101,52 +106,52 @@ func (helper *MsgHelper) unpack(buf []byte) {
 		return
 	}
 
-	if helper.len == 0 { // Buffering message header
+	// Buffer message header
+	if helper.len == 0 {
 		index := HEADERLEN - len(helper.buf)
 		if index > len(buf) { // header not finished, continue read
 			index = len(buf)
-			helper.append(buf[0:index])
+			helper.append(buf[:index])
 			return
 		}
 
-		helper.append(buf[0:index])
-
 		var header header
-		err := header.Deserialize(helper.buf)
-		if err != nil {
+		if err := header.Deserialize(helper.append(buf[:index])); err != nil {
+			helper.handler.OnError(ErrInvalidHeader)
 			helper.reset()
 			return
 		}
 
 		if header.Magic != helper.magic {
 			helper.handler.OnError(ErrUnmatchedMagic)
+			helper.reset()
+			return
+		}
+
+		if header.Length > helper.maxMsgSize {
+			helper.handler.OnError(ErrMsgSizeExceeded)
+			helper.reset()
 			return
 		}
 
 		helper.len = int(header.Length)
 		buf = buf[index:]
 	}
-
 	msgLen := helper.len
 
-	if len(buf) == msgLen { // Just read the full message
-
-		helper.append(buf[:])
-		helper.decode(helper.buf)
-		helper.reset()
-
-	} else if len(buf) < msgLen { // Read part of the message
-
+	// Read part of the message
+	if len(buf) < msgLen {
 		helper.append(buf[:])
 		helper.len = msgLen - len(buf)
-
-	} else { // Read more than the message
-
-		helper.append(buf[0:msgLen])
-		helper.decode(helper.buf)
-		helper.reset()
-		helper.unpack(buf[msgLen:])
+		return
 	}
+
+	// decode received message
+	helper.decode(helper.append(buf[:msgLen]))
+	helper.reset()
+
+	// unpack next message
+	helper.unpack(buf[msgLen:])
 }
 
 func (helper *MsgHelper) decode(buf []byte) {
@@ -157,7 +162,7 @@ func (helper *MsgHelper) decode(buf []byte) {
 
 	hdr, err := verify(buf)
 	if err != nil {
-		helper.handler.OnError(fmt.Errorf("[MsgHelper] verify message header failed %s ", err.Error()))
+		helper.handler.OnError(fmt.Errorf("[MsgHelper] verify message header failed %s", err.Error()))
 		return
 	}
 

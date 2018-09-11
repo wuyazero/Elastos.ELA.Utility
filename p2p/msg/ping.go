@@ -4,7 +4,7 @@ import (
 	"io"
 	"encoding/binary"
 
-	"github.com/elastos/Elastos.ELA.Utility/p2p"
+	"github.com/wuyazero/Elastos.ELA.Utility/p2p"
 )
 
 type Ping struct {

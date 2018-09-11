@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/elastos/Elastos.ELA.Utility/common"
-	"github.com/elastos/Elastos.ELA.Utility/p2p"
+	"github.com/wuyazero/Elastos.ELA.Utility/common"
+	"github.com/wuyazero/Elastos.ELA.Utility/p2p"
 )
 
 // RejectCode represents a numeric value by which a remote peer indicates

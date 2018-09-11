@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/elastos/Elastos.ELA.Utility/common"
+	"github.com/wuyazero/Elastos.ELA.Utility/common"
 )
 
 const (

@@ -1,4 +1,4 @@
-package: github.com/elastos/Elastos.ELA.Utility
+package: github.com/wuyazero/Elastos.ELA.Utility
 import:
 - package: golang.org/x/crypto
   repo:  https://github.com/golang/crypto.git

@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"encoding/hex"
-	"github.com/elastos/Elastos.ELA.Utility/common"
+	"github.com/wuyazero/Elastos.ELA.Utility/common"
 )
 
 func TestToProgramHash(t *testing.T) {

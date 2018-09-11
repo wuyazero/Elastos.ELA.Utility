@@ -1,7 +1,7 @@
 package p2p
 
 import (
-	"github.com/elastos/Elastos.ELA.Utility/common"
+	"github.com/wuyazero/Elastos.ELA.Utility/common"
 )
 
 const (

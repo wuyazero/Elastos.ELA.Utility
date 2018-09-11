@@ -5,7 +5,7 @@ import (
 	"crypto/sha256"
 	"errors"
 
-	. "github.com/elastos/Elastos.ELA.Utility/common"
+	. "github.com/wuyazero/Elastos.ELA.Utility/common"
 	"golang.org/x/crypto/ripemd160"
 )
 

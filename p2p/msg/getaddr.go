@@ -3,7 +3,7 @@ package msg
 import (
 	"io"
 
-	"github.com/elastos/Elastos.ELA.Utility/p2p"
+	"github.com/wuyazero/Elastos.ELA.Utility/p2p"
 )
 
 type GetAddr struct{}

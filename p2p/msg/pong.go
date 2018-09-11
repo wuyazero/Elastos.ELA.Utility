@@ -1,6 +1,6 @@
 package msg
 
-import "github.com/elastos/Elastos.ELA.Utility/p2p"
+import "github.com/wuyazero/Elastos.ELA.Utility/p2p"
 
 type Pong struct {
 	Ping
